@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+input[type='text'], input[type='password'], input[type='email'], textarea {
+    @apply w-full border my-1 py-2 px-4 rounded-2xl;
+}
+textarea {
+    @apply resize-none
+}
+button {
+    @apply bg-gray-300 m-1;
+}
+button.primary {
+    @apply bg-primary px-4 py-2 text-white rounded-2xl;
+}
+a.primary {
+    @apply bg-primary p-2 w-full text-white rounded-2xl;
+}
+
+a.active {
+    @apply bg-primary text-white;
+}
+a.inactive {
+    @apply bg-gray-200 text-black;
+}
+a.icon {
+    @apply inline-flex gap-2 ;
+}
+a.tab {
+    @apply py-2 px-6 rounded-full ;
+}
