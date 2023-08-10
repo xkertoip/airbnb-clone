@@ -9,27 +9,24 @@ export default function useAuth() {
     const navigate = useNavigate();
     const [cookies, removeCookie] = useCookies(['token']);
     const [username, setUsername] = useState<string | undefined>(undefined);
-    const [isAuth, setIsAuth] = useState<boolean>(false);
 
     useEffect(() => {
-        const verifyCookie = async () => {
-                    const { data } = await getCurrentUser();
+/*        getCurrentUser()
+            .then(({status, user, email}) => {
+                if(username !== null) {
+                    return status
+                        ? toast(`Hello ${user}`, {
+                            position: 'top-right'
+                        })
+                        : (removeCookie(cookies.token,"token"), navigate('/'))
+                }
+            })
                     const {status, user} = data;
-                    console.log(data)
-                    setUsername(user);
-                    if(username !== null) {
-                        return status
-                            ? toast(`Hello ${user}`, {
-                                position: 'top-right'
-                            })
-                            : (removeCookie(cookies.token,"token"), navigate('/'))
-                    }
-        };
-        verifyCookie()
+                    console.log(data)*/
 
     }, []);
 
 
 
-    return {username, isAuth, setIsAuth};
+    return {username};
 }

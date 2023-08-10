@@ -1,8 +1,7 @@
 import {Link,useNavigate} from "react-router-dom";
 import { login } from '../services/auth.service';
 import {toast} from "react-toastify";
-import { useState, ChangeEvent, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useState, ChangeEvent } from "react";
 
 
 interface LoginProps {
@@ -18,7 +17,6 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const [inputValue, setInputValue] = useState<LoginProps>(initialValue);
     const {email, password} = inputValue;
-    const { setIsAuth } = useContext(AuthContext);
 
 
     const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -42,17 +40,18 @@ export default function LoginPage() {
     const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            const {data} = await login(email, password);
-            const {success, message} = data;
-            if (success) {
-                handleSuccess(message);
-                setIsAuth(true);
-                setTimeout(() => {
-                    navigate('/')
-                }, 1000)
-            } else {
-                handleError(message);
-            }
+
+            await login(email, password).then(({data}) => {
+                const {success, message} = data;
+                if (success) {
+                    handleSuccess(message);
+                    setTimeout(() => {
+                        navigate('/')
+                    }, 1000)
+                } else {
+                    handleError(message);
+                }
+            })
         } catch (err) {
             console.log(err)
         }
@@ -82,7 +81,7 @@ export default function LoginPage() {
                         onChange={handleOnChange}/>
                     <button className={'primary w-full'}>Login</button>
                     <div className={'text-center py-2 text-gray-500'}>Don't have an account yet?
-                        <Link className={'underline pl-2 text-black font-bold'} to={'/signup'}>Register now</Link>
+                        <Link className={'underline pl-2 text-black font-bold'} to={'/register'}>Register now</Link>
                     </div>
                 </form>
             </div>

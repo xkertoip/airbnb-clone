@@ -6,13 +6,13 @@ interface Props {
 }
 interface IAuthContext {
     username: string | undefined
-    isAuth: boolean;
-    setIsAuth: (isAuth: boolean) => void
+/*    isAuth: boolean;
+    setIsAuth: (isAuth: boolean) => void*/
 }
 const initialAuthState  = {
     username: undefined,
-    isAuth: false,
-    setIsAuth: () => {},
+/*    isAuth: false,
+    setIsAuth: () => {},*/
 }
 
 
@@ -20,9 +20,9 @@ const initialAuthState  = {
 export const AuthContext = createContext<IAuthContext>(initialAuthState)
 
 export function AuthContextProvider({children} : Props ) {
-    const {username, isAuth, setIsAuth} = useAuth();
+    const {username} = useAuth();
     return(
-        <AuthContext.Provider value={{ username, isAuth, setIsAuth }}>
+        <AuthContext.Provider value={{ username}}>
             {children}
         </AuthContext.Provider>
     )
