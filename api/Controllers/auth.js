@@ -6,47 +6,85 @@ const crypto = require("crypto");
 
 module.exports.login = async ( req, res) => {
     try {
-        const {email, password} = req.body;
+        const {email, password} = req.body.props;
         if (!email || !password) {
-            return res.status(400).send({
+            return res.status(400).json({
                 message: 'Email or Password not present'
             });
         }
-        const user = await User.findOne({email: email});
-        if (!user) return res.status(401).send({message: 'Incorrect email or password'});
+        const existingUser = await User.findOne({email: email});
+        if (!existingUser) return res.status(401).json({message: 'Incorrect email or password'});
 
-        const validPassword = await user.matchPassword(password);
-        if (!validPassword) return res.status(401).send({message: "Incorrect email or password"});
+        const validPassword = await existingUser.matchPassword(password);
+        if (!validPassword) return res.status(401).json({message: "Incorrect email or password"});
+        const payload = {
+            id: existingUser._id,
+            email: existingUser.email,
+            username: existingUser.username
+        }
 
-        if (!user.verified) {
-            const tokenExisting = await Token.findOne({userId: user._id});
+        if (!existingUser.verified) {
+            const tokenExisting = await Token.findOne({userId: existingUser._id});
             if (!tokenExisting) {
                 const token = await new Token({
-                    userId: user._id,
+                    userId: existingUser._id,
                     token: crypto.randomBytes(32).toString("hex"),
                 }).save();
 
-                const url = `${process.env.BASE_URL}/${user._id}/verify/${token.token}`;
-                await sendEmail(user.email, "Verify Email", url);
+                const url = `${process.env.BASE_URL}/${existingUser._id}/verify/${token.token}`;
+                await sendEmail(existingUser.email, "Verify Email", url);
             }
             return res
                 .status(400)
                 .send({message: "An Email sent to our account please verify"})
         }
-        const token = user.generateAuthToken();
-        res.cookie('jwt', token, {
+        const access_token = existingUser.generateAuthToken();
+        res
+            .cookie('access_token', access_token, {
             httpOnly: true,
-            withCredentials: true,
             /*
             secure: process.env.NODE_ENV !== 'development', // Use secure cookies in production
             sameSite: 'strict', // Prevent CSRF attacks
             */
-            maxAge: 30 * 24 * 60 * 60 * 1000
+            maxAge: 60 * 60 * 24 * 30
         })
-        res.status(200).send({data: token, message: "logged in successfully"});
+            .status(200).json({
+                success: true,
+                user: {
+                    username: existingUser.username,
+                    email: existingUser.email,
+                    role: existingUser.role
+                },
+                message: `Hello, ${payload.username} !`
+            });
     } catch (error) {
-        res.status(500).send({message: "Internal Server Error"});
+        res.status(500).json({message: "Internal Server Error"});
     }
+}
+
+module.exports.private = async (req, res) => {
+    return json.status(201).send({
+        user: { id: req.userId, role: req.role}
+    })
+}
+module.exports.getCurrentProfile = async (req, res) => {
+    const existingUser = await User.findById(req.body._id);
+    if(!existingUser) return res.status(401).send({ message: "Not authorized" });
+
+    return res.status(200).send({
+            message: `Welcome, ${existingUser.username}`,
+            user: {
+                username: existingUser.username,
+                email: existingUser.email,
+                role: existingUser.role
+            }
+    })
+}
+
+module.exports.logout = async (req, res) => {
+    res.clearCookie("access_token");
+    res.send('cookie cleared');
+
 }
 
 module.exports.update = async(req, res, next) => {
@@ -108,20 +146,4 @@ module.exports.getUser = async ( req, res, next) => {
             res.status(200).json({user: userFunction})
         })
         .catch(err => res.status(401).json({ message: "Not succesful", error: err.message}))
-}
-
-module.exports.getUserProfile = async (req, res) => {
-    const user = await User.findById(req.user._id)
-        .then((user) => {
-            res.status(201).json({
-                user: user
-            })
-        })
-        .catch (err => res.status(404).json({ message: 'User not found'}))
-
-}
-
-module.exports.logout = async (req, res) => {
-    res.clearCookie("jwt");
-    res.send('cookie cleared');
 }

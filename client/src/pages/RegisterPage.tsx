@@ -1,12 +1,11 @@
-import {Link, useNavigate} from "react-router-dom";
-import {toast} from "react-toastify";
-import {register} from "../services/auth.service";
-import { useState, ChangeEvent } from "react";
+import {Link, Navigate} from "react-router-dom";
+import { useState, ChangeEvent, useContext } from "react";
 import { IUser } from "../types/user.type";
+import { AuthContext } from "../context/AuthContext";
 
 
 export default function RegisterPage() {
-    const navigate = useNavigate();
+    const {handleRegister, user} = useContext(AuthContext);
     const [inputValue, setInputValue] = useState<IUser>({
         email: '',
         username: '',
@@ -21,30 +20,10 @@ export default function RegisterPage() {
         })
     }
 
-    const handleError = (err: any) => {
-        toast.error(err, {
-            position: "bottom-left"
-        })
-    }
-    const handleSuccess = (msg: any) => {
-        toast.success(msg, {
-            position: "bottom-right",
-        })
-    }
     const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            const {username, email, password} = inputValue;
-            const {data} = await register(username, email, password);
-            const {success, message} = data;
-            if(success) {
-                handleSuccess(message);
-                setTimeout(() => {
-                    navigate('/login')
-                }, 1000)
-            } else {
-                handleError(message)
-            }
+            handleRegister(inputValue);
         } catch (err) {
             console.log(err);
         }
@@ -55,6 +34,9 @@ export default function RegisterPage() {
             username: ''
         });
     }
+    if(user) {
+        return <Navigate to={'/'}/>
+    }
 
     return (
         <div className={'grow flex items-center justify-around'}>
@@ -64,7 +46,7 @@ export default function RegisterPage() {
                     <input type="text" name="username" placeholder="John Doe" value={username} onChange={handleOnChange}/>
                     <input type="email" name="email" placeholder="your@email.com" value={email} onChange={handleOnChange}/>
                     <input type="password" name="password" placeholder="password" value={password} onChange={handleOnChange}/>
-                    <button className={'primary w-full'}>Register</button>
+                    <button type="submit" className={'primary w-full'}>Register</button>
                     <div className={'text-center py-2 text-gray-500'}>Have you account already?
                         <Link className={'underline pl-2 text-black font-bold'} to={'/login'}>Login</Link>
                     </div>

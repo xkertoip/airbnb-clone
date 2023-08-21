@@ -3,29 +3,36 @@ const Token = require('../Models/token');
 const crypto = require("crypto");
 const { sendEmail } = require("../util/sendEmail");
 const ObjectID = require("mongoose").ObjectID;
+const { serialize } = require("cookie");
 
 
 module.exports.register = async (req, res) => {
     try {
-        const { email, password, username, createAt} = req.body;
+        const { email, password, username, createAt} = req.body.props;
         const existingUser = await User.findOne({ email: email });
         if (existingUser) {
             return res.status(409).send({ message: "User with given email already exists"});
-       /*      await User.deleteOne({ _id: existingUser._id})*/
+
+            /*
+           await User.deleteOne({ _id: existingUser._id})
+           */
         }
-        const user = await User.create({ email, password, username, createAt });
+        const user = await User.create({
+            email,
+            username,
+            password,
+            createAt
+        });
 
-        console.log(user);
-
-        res.cookie('jwt', user.token, {
+        const serialized = serialize('token', user.token, {
             httpOnly: true,
-            withCredentials: true,
             /*
             secure: process.env.NODE_ENV !== 'development', // Use secure cookies in production
             sameSite: 'strict', // Prevent CSRF attacks
             */
-            maxAge: 30 * 24 * 60 * 60 * 1000
-        })
+            maxAge: 60 * 60 * 24 * 30
+        });
+        res.setHeader('Set-Cookie', serialized);
 
         const token = await new Token({
             userId: user._id,

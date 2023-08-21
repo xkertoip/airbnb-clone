@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const {connectDB} = require('./config/db')
 require('dotenv').config();
-const cookieParser = require('cookie-parser');
-const { adminAuth, protect} = require("./Middlewares/auth");
+const { adminAuth, userAuth} = require("./Middlewares/auth");
 const userRoutes = require('./Routes/auth')
+const cookieParser = require("cookie-parser");
 
 const { PORT} = process.env;
 
@@ -13,9 +13,8 @@ connectDB();
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-
-app.use(cookieParser());
 app.use(express.json());
+app.use(cookieParser())
 app.use(
     cors({
         origin: process.env.CLIENT_CORS_URL,
@@ -25,7 +24,7 @@ app.use(
 
 app.use('/api', userRoutes);
 app.get("/admin", adminAuth, (req, res) => res.send("Admin Route"));
-app.get("/basic", protect, (req, res) => res.send("User Route"));
+app.get("/basic", userAuth, (req, res) => res.send("User Route"));
 
 /*if(process.env.NODE_ENV === 'production') {
         const __dirname = path.resolve();

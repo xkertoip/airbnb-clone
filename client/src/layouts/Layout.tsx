@@ -1,13 +1,17 @@
-import Header from "./components/Header";
-import { Outlet} from "react-router-dom";
+import Header from "../components/Header";
 import { ToastContainer } from "react-toastify";
+import { ReactNode } from "react";
 
-export default function Layout() {
+type Props = {
+    children: ReactNode;
+}
+
+export default function Layout({children}: Props) {
     return(
         <>
             <div className={'p-4 flex flex-col min-h-screen'}>
                 <Header/>
-                <Outlet/>
+                {children}
             </div>
             <ToastContainer/>
         </>

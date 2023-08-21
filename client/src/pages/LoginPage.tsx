@@ -1,22 +1,18 @@
-import {Link,useNavigate} from "react-router-dom";
-import { login } from '../services/auth.service';
-import {toast} from "react-toastify";
-import { useState, ChangeEvent } from "react";
+import {Link} from "react-router-dom";
+import { useState, ChangeEvent, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { IUserLogin } from "../types/user.type";
 
 
-interface LoginProps {
-    email: string;
-    password: string
-}
-const initialValue: LoginProps = {
+const initialValue: IUserLogin = {
     email: '',
     password: ''
 }
 
 export default function LoginPage() {
-    const navigate = useNavigate();
-    const [inputValue, setInputValue] = useState<LoginProps>(initialValue);
+    const [inputValue, setInputValue] = useState<IUserLogin>(initialValue);
     const {email, password} = inputValue;
+    const {handleLogin} = useContext(AuthContext);
 
 
     const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -27,39 +23,16 @@ export default function LoginPage() {
         })
     }
 
-    const handleError = (err: any) => {
-        toast.error(err, {
-            position: "bottom-left"
-        })
-    }
-    const handleSuccess = (msg: any) => {
-        toast.success(msg, {
-            position: "bottom-left"
-        })
-    }
-    const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
+    const handleSubmit =  (e: ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
-        try {
-
-            await login(email, password).then(({data}) => {
-                const {success, message} = data;
-                if (success) {
-                    handleSuccess(message);
-                    setTimeout(() => {
-                        navigate('/')
-                    }, 1000)
-                } else {
-                    handleError(message);
-                }
+            handleLogin(inputValue);
+            setTimeout(() => {
+                setInputValue({
+                    ...inputValue,
+                    email: '',
+                    password: ''
+                })
             })
-        } catch (err) {
-            console.log(err)
-        }
-        setInputValue({
-            ...inputValue,
-            email: '',
-            password: ''
-        })
     }
 
     return (
